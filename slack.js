@@ -2,6 +2,13 @@ import { createReadStream, readFileSync, writeFileSync, read } from 'fs';
 import { post } from 'request'
 const { WebClient } = require('@slack/client');
 
+const fontkit = require('fontkit');
+const emojiFont = fontkit.openSync('./fonts/apple_emoji.ttc').fonts[0];
+
+const emoji = require('node-emoji');
+
+const dataUri = require('datauri').prototype;
+
 let token = readFileSync(".token", "utf8");
 
 const clientId = process.env.SLACK_CLIENT_ID;
@@ -47,8 +54,24 @@ export class SlackClient {
     }
 
     async getUrlForEmoji(emojiName) {
-        let emojiListResponse = await web.emoji.list()
+        return this.emojiUrlFromLocal(emojiName) || this.emojiUrlFromApi(emojiName)
+    }
 
+    async emojiUrlFromLocal(emojiName) {
+        if (!emoji.hasEmoji(emojiName)) {
+            return undefined
+        }
+
+        let defaultEmoji = emoji.get(emojiName);
+
+        let layout = emojiFont.layout(defaultEmoji);
+        let rendered = layout.glyphs[0].getImageForSize(64)
+
+        return dataUri.format('.png', rendered.data).content;
+    }
+
+    async emojiUrlFromApi(emojiName) {
+        let emojiListResponse = await web.emoji.list()
         let url = emojiListResponse["emoji"][emojiName]
 
         while (url && url.startsWith(aliasEmojiPrefix)) {
