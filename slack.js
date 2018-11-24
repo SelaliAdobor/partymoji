@@ -47,19 +47,19 @@ export class SlackClient {
     }
 
     async getUrlForEmoji(emojiName) {
-        let emojiList = web.emoji.list()
+        let emojiListResponse = await web.emoji.list()
 
-        let url = emojiList["emoji"][emojiName]
+        let url = emojiListResponse["emoji"][emojiName]
 
-        while (url.startsWith(aliasEmojiPrefix)) {
+        while (url && url.startsWith(aliasEmojiPrefix)) {
             let aliasedEmoji = url.slice(aliasEmojiPrefix.length)
             url = result["emoji"][aliasedEmoji]
         }
 
-        if (result.ok && url) {
+        if (emojiListResponse.ok && url) {
             return url
         } else {
-            return result.error || "Emoji Not Found"
+            throw new Error(emojiListResponse.error || "Emoji Not Found")
         }
     }
 }
