@@ -19,6 +19,7 @@
     "fastify-static": "^0.14.0",
     "party-party-party": "git+https://github.com/SelaliAdobor/party-party-party.git",
     "request": "^2.88.0",
+    "request-promise": "^4.2.2",
     "superagent": "^4.0.0"
   },
   "devDependencies": {

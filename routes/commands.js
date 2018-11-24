@@ -1,13 +1,14 @@
-const {join} = require('path')
+const { join } = require('path')
 const { mkdirSync, existsSync } = require('fs')
 
 const { SlackClient } = require('../slack')
-const {partify} = require("../partify")
+const { partify } = require("../partify")
 
 const Slack = new SlackClient()
 
 const tempDirectory = "./.runtimetemp"
 const emojiRegex = new RegExp(/:(.*):/)
+const { post } = require('request-promise')
 
 if(!existsSync(tempDirectory)){
     mkdirSync(tempDirectory)
@@ -15,25 +16,26 @@ if(!existsSync(tempDirectory)){
 
 module.exports = async function routes(fastify, options) {
     fastify.post('/partify', async (request, reply) => {
-        try{
+        let responseUrl = request.body["response_url"]
+
+        try {
+            reply.send("Serving up your party gif! :parrot:")
             let text = request.body["text"]
 
             let emojiName = await emojiFromText(text)
             let emojiUrl = await Slack.getUrlForEmoji(emojiName)
 
             let partyName = `party_${emojiName}`
-            let partyEmojiLocalPath = join(tempDirectory,`${partyName}.gif`)
-            
-            await partify(emojiUrl , partyEmojiLocalPath)
-          
-            let response = await Slack.uploadEmoji(partyName, partyEmojiLocalPath)
+            let partyEmojiLocalPath = join(tempDirectory, `${partyName}.gif`)
 
-            console.log(response)
+            await partify(emojiUrl, partyEmojiLocalPath)
 
-            reply.send(`:${partyName}:`)
-        }catch(err){
-            console.log(err)
-            reply.send(err)
+            await Slack.uploadEmoji(partyName, partyEmojiLocalPath)
+
+            await Slack.sendSlashCommandResponse(responseUrl, `:${partyName}: Your gif is here! :${partyName}:`)
+        } catch (err) {
+            console.log("Attempt to invoke `/partify` failed",err)
+            await  Slack.sendSlashCommandResponse(responseUrl, `😞 I wasn't able to make your gif 😞`, err.message)
         }
     })
 }
