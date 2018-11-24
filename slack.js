@@ -57,7 +57,7 @@ export class SlackClient {
         return this.emojiUrlFromLocal(emojiName) || this.emojiUrlFromApi(emojiName)
     }
 
-    async emojiUrlFromLocal(emojiName) {
+    emojiUrlFromLocal(emojiName) {
         if (!emoji.hasEmoji(emojiName)) {
             return undefined
         }
