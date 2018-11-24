@@ -1,5 +1,5 @@
 import { createReadStream, readFileSync, writeFileSync, read } from 'fs';
-import { post } from 'superagent'
+import { post } from 'request'
 const { WebClient } = require('@slack/client');
 
 let token = readFileSync(".token", "utf8");
@@ -25,7 +25,7 @@ export class SlackClient {
             writeFileSync(".token", token)
             return web.token = token
         } else {
-            throw new Error(result.error) 
+            throw new Error(result.error)
         }
     }
 
@@ -61,5 +61,17 @@ export class SlackClient {
         } else {
             throw new Error(emojiListResponse.error || "Emoji Not Found")
         }
+    }
+
+    async sendSlashCommandResponse(responseUrl, text, secondaryText) {
+        return await post(responseUrl, {
+            json: true,
+            body: {
+                "text": text,
+                "attachments": [{
+                    "text": secondaryText
+                }]
+            }
+        })
     }
 }
