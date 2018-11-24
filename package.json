@@ -14,6 +14,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "dotenv": "^6.1.0",
+    "emoji-datasource": "^4.1.0",
     "fastify": "^1.13.0",
     "fastify-formbody": "^2.0.2",
     "fastify-static": "^0.14.0",
