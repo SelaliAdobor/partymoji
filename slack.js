@@ -8,7 +8,7 @@ const clientId = process.env.SLACK_CLIENT_ID;
 const clientSecret = process.env.SLACK_CLIENT_SECRET;
 const web = new WebClient(token);
 
-
+const aliasEmojiPrefix = "alias:"
 export class SlackClient{
     constructor(){
         this.token = ""
@@ -33,12 +33,18 @@ export class SlackClient{
     }
 
     
-
+    
     getUrlForEmoji(emojiName){
         return web.emoji.list().then(result =>{
             let url = result["emoji"][emojiName]
+
+            while(url.startsWith(aliasEmojiPrefix)){
+                let aliasedEmoji = url.slice(aliasEmojiPrefix.length)
+                url = result["emoji"][aliasedEmoji]
+            }
+
             if (result.ok && url){
-                return Promise.resolve(result["emoji"][emojiName])
+                return Promise.resolve(url)
             }else{
                 return Promise.reject(result.error || "Emoji Not Found")
             }
