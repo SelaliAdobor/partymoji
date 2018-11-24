@@ -1,10 +1,7 @@
 const fastify = require('fastify')()
 fastify.log = console
 
-const path = require('path')
 require('dotenv').config()
-
-const { partify } = require('./partify')
 
 
 const port = 1234
