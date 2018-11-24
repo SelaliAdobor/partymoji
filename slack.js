@@ -59,7 +59,7 @@ export class SlackClient {
         if (emojiListResponse.ok && url) {
             return url
         } else {
-            throw new Error(emojiListResponse.error || "Emoji Not Found")
+            throw new Error(emojiListResponse.error || `Emoji :${emojiName}: not found`)
         }
     }
 
