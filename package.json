@@ -4,12 +4,23 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "babel-watch server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@slack/client": "^4.8.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "dotenv": "^6.1.0",
     "fastify": "^1.13.0",
-    "fastify-formbody": "^2.0.2"
+    "fastify-formbody": "^2.0.2",
+    "fastify-static": "^0.14.0",
+    "party-party-party": "git+https://github.com/scotchfield/party-party-party.git"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-watch": "^2.0.7"
   }
 }
