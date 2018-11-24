@@ -1,21 +1,39 @@
-const emojiRegex = new RegExp(/:(.*):/)
+const {join} = require('path')
+const {mkdirSync} = require('fs')
+
 const { SlackClient } = require('../slack')
+const {partify} = require("../partify")
 
 const Slack = new SlackClient()
 
+const tempDirectory = "./.runtimetemp"
+const emojiRegex = new RegExp(/:(.*):/)
+
+mkdirSync(tempDirectory)
+
 module.exports = async function routes(fastify, options) {
     fastify.post('/partify', async (request, reply) => {
-        let text = request.body["text"]
+        try{
+            let text = request.body["text"]
 
-        await Promise.resolve(emojiFromText(text))
-            .then((emoji) => Slack.getUrlForEmoji(emoji))
-            .then(url => reply.send(url))
-            .catch((err) => {
-                console.log(err)
-                reply.send(err)
-            })
+            let emojiName = await emojiFromText(text)
+            let emojiUrl = await Slack.getUrlForEmoji(emojiName)
+
+            let partyName = `party_${emojiName}`
+            let partyEmojiLocalPath = join(tempDirectory,`${partyName}.gif`)
+            
+            await partify(emojiUrl , partyEmojiLocalPath)
+          
+            let response = await Slack.uploadEmoji(partyName, partyEmojiLocalPath)
+
+            console.log(response)
+
+            reply.send(`:${partyName}:`)
+        }catch(err){
+            console.log(err)
+            reply.send(err)
+        }
     })
-    console.log("Test")
 }
 
 function emojiFromText(text) {
