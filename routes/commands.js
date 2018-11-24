@@ -1,5 +1,5 @@
 const {join} = require('path')
-const {mkdirSync} = require('fs')
+const { mkdirSync, existsSync } = require('fs')
 
 const { SlackClient } = require('../slack')
 const {partify} = require("../partify")
@@ -9,7 +9,9 @@ const Slack = new SlackClient()
 const tempDirectory = "./.runtimetemp"
 const emojiRegex = new RegExp(/:(.*):/)
 
-mkdirSync(tempDirectory)
+if(!existsSync(tempDirectory)){
+    mkdirSync(tempDirectory)
+}
 
 module.exports = async function routes(fastify, options) {
     fastify.post('/partify', async (request, reply) => {
