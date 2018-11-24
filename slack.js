@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync } from 'fs';
-
+import { createReadStream, readFileSync, writeFileSync, read } from 'fs';
+import { post } from 'superagent'
 const { WebClient } = require('@slack/client');
 
 let token = readFileSync(".token", "utf8");
@@ -9,45 +9,57 @@ const clientSecret = process.env.SLACK_CLIENT_SECRET;
 const web = new WebClient(token);
 
 const aliasEmojiPrefix = "alias:"
-export class SlackClient{
-    constructor(){
-        this.token = ""
-    }
+const nameTakenError = "error_name_taken"
 
-    setTokenFromOauthCode(code){
-        return web.oauth.access({ 
+export class SlackClient {
+
+    async setTokenFromOauthCode(code) {
+        let oauthResult = web.oauth.access({
             client_id: clientId,
             client_secret: clientSecret,
             code: code
-        }).then(result=>{
-            if(result.ok){
-                console.log(result)
-                token = result["access_token"]
-                web.token = token
-                writeFileSync(".token",token)
-                Promise.resolve(result["access_token"])
-            }else{
-                Promise.reject(result.error)
-            }
         })
+
+        if (oauthResult.ok) {
+            web.token = result["access_token"]
+            writeFileSync(".token", token)
+            return web.token = token
+        } else {
+            throw new Error(result.error) 
+        }
     }
 
-    
-    
-    getUrlForEmoji(emojiName){
-        return web.emoji.list().then(result =>{
-            let url = result["emoji"][emojiName]
+    async uploadEmoji(name, path) {
+        const formData = {
+            token: web.token,
+            name: name,
+            mode: 'data',
+            image: readFileSync(__dirname + "/" + path)
+        };
 
-            while(url.startsWith(aliasEmojiPrefix)){
-                let aliasedEmoji = url.slice(aliasEmojiPrefix.length)
-                url = result["emoji"][aliasedEmoji]
+        try {
+            return await web.apiCall("/emoji.add", formData)
+        } catch (err) {
+            if (err["data"]["error"] == nameTakenError) {
+                throw new Error(`The emoji name :${name}: is already taken 🙁"`)
             }
+        }
+    }
 
-            if (result.ok && url){
-                return Promise.resolve(url)
-            }else{
-                return Promise.reject(result.error || "Emoji Not Found")
-            }
-        })
+    async getUrlForEmoji(emojiName) {
+        let emojiList = web.emoji.list()
+
+        let url = emojiList["emoji"][emojiName]
+
+        while (url.startsWith(aliasEmojiPrefix)) {
+            let aliasedEmoji = url.slice(aliasEmojiPrefix.length)
+            url = result["emoji"][aliasedEmoji]
+        }
+
+        if (result.ok && url) {
+            return url
+        } else {
+            return result.error || "Emoji Not Found"
+        }
     }
 }
