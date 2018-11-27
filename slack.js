@@ -1,9 +1,13 @@
-import { createReadStream, readFileSync, writeFileSync, read } from 'fs';
+import { existsSync, readFileSync, writeFileSync, read } from 'fs';
 import { post } from 'request'
 const { WebClient } = require('@slack/client');
 
 const fontkit = require('fontkit');
-const emojiFont = fontkit.openSync('./fonts/apple_emoji.ttc').fonts[0];
+
+const appleFont = './fonts/apple_emoji.ttc'
+const eOneFont = './fonts/emojione.ttc'
+
+const emojiFont = getEmojiFont()
 
 const emoji = require('node-emoji');
 
@@ -17,6 +21,7 @@ const web = new WebClient(token);
 
 const aliasEmojiPrefix = "alias:"
 const nameTakenError = "error_name_taken"
+
 
 export class SlackClient {
 
@@ -58,7 +63,7 @@ export class SlackClient {
     }
 
     async emojiUrlFromLocal(emojiName) {
-        if (!emoji.hasEmoji(emojiName)) {
+        if (!emojiFont || !emoji.hasEmoji(emojiName)) {
             return undefined
         }
 
@@ -97,4 +102,18 @@ export class SlackClient {
             }
         })
     }
+}
+
+function getEmojiFont() {
+    var emojiFont;
+    if (existsSync(appleFont)) {
+        emojiFont = appleFont
+    } else if (existsSync(eOneFont)) {
+        console.warn("Using Emoji One fonts. Emoji One fonts do not contain all built-in Slack emojis, use Apple Emoji font for best support")
+        emojiFont = eOneFont
+    } else {
+        console.warn("No local fonts found, built-in emoji support will be broken.")
+        return undefined
+    }
+    return fontkit.openSync(emojiFont).fonts[0];
 }
